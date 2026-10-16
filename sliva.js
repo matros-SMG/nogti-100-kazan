@@ -15,11 +15,27 @@
   const pick = { shade: null, shape: null };
   const nails = $$(".nails svg");
   const nowShade = $("[data-now-shade]"), nowShape = $("[data-now-shape]");
-  const paint = () => {
-    nails.forEach((n) => {
-      const p = n.querySelector(".plate");
+  // кисть (как в оригинале «Сливы»): новый цвет ложится по ноготку от основания к кончику, по очереди на каждом
+  const brushTo = (n, i, p, p2, fill) => {
+    const r = n.querySelector("clipPath rect");
+    const tok = (n._tok = (n._tok || 0) + 1);
+    p2.style.fill = fill;
+    const t0 = performance.now() + i * 60, dur = 650;
+    const step = (now) => {
+      if (n._tok !== tok) return;
+      const k = Math.min(1, Math.max(0, (now - t0) / dur)), e = k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2, h = 128 * e;
+      r.setAttribute("y", 106 - h); r.setAttribute("height", h);
+      if (k < 1) requestAnimationFrame(step);
+      else { p.style.fill = fill; r.setAttribute("height", 0); r.setAttribute("y", 106); }
+    };
+    requestAnimationFrame(step);
+  };
+  const paint = (brush) => {
+    nails.forEach((n, i) => {
+      const [p, p2] = n.querySelectorAll(".plate");
       p.setAttribute("d", SHAPES[pick.shape]);
-      p.style.fill = pick.hex;
+      if (p2) p2.setAttribute("d", SHAPES[pick.shape]);
+      if (brush && p2) brushTo(n, i, p, p2, pick.hex); else p.style.fill = pick.hex;
       const sh = n.querySelector(".shine");
       if (sh) sh.setAttribute("d", SHAPES[pick.shape]);
       n.querySelector(".gloss").setAttribute("d", pick.shape === "Квадрат" ? "M16 16 Q16 10 22 10 L22 58 Q16 58 16 52 Z" : "M17 46 C17 30 22 20 26 16 L24 60 Q17 60 17 54 Z");
@@ -29,8 +45,17 @@
   };
   $$(".swatch").forEach((b) => b.addEventListener("click", () => {
     $$(".swatch").forEach((x) => x.setAttribute("aria-pressed", x === b));
-    pick.shade = b.dataset.name; pick.hex = b.dataset.hex; paint();
+    pick.shade = b.dataset.name; pick.hex = b.dataset.hex; paint(true);
   }));
+  // веер: пока до блока не докрутили, ноготки сложены в центре, потом разъезжаются
+  const fan = $(".nails");
+  if (fan && "IntersectionObserver" in window) {
+    fan.classList.add("pre");
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { setTimeout(() => fan.classList.remove("pre"), 150); io.disconnect(); }
+    }, { threshold: .4 });
+    io.observe(fan);
+  }
   $$(".shape").forEach((b) => b.addEventListener("click", () => {
     $$(".shape").forEach((x) => x.setAttribute("aria-pressed", x === b));
     pick.shape = b.dataset.shape; paint();

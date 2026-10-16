@@ -295,3 +295,13 @@ body:not(.dark) .pick__card .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px
 .pick__card { box-shadow: 0 0 0 2px var(--frame), var(--shadow); }
 body.dark { --frame: #f2675b; }
 .studio__pics figure { box-shadow: 0 0 0 2px var(--frame); }
+/* веер ноготков, как в оригинале «Сливы» (Сергей 16.10): сложены в центре → разъезжаются при прокрутке; при наведении ноготок приподнимается */
+.nails svg { transform-origin: 50% 100%; transform: rotate(var(--rot, 0deg)); transition: transform 1.1s cubic-bezier(.2, .9, .25, 1.15); }
+.nails svg:nth-child(1) { --rot: -14deg; --x: 200%; }
+.nails svg:nth-child(2) { --rot: -7deg; --x: 100%; }
+.nails svg:nth-child(4) { --rot: 7deg; --x: -100%; }
+.nails svg:nth-child(5) { --rot: 14deg; --x: -200%; }
+.nails.pre svg { transform: translateX(var(--x, 0)) rotate(0deg) scale(.9); }
+.nails svg:hover { transition-duration: .35s; transform: rotate(var(--rot, 0deg)) translateY(-10px); }
+/* 8 лаков в один ряд и на узких телефонах */
+@media (max-width: 400px) { .swatches { gap: 4px; } .swatch { width: 26px; height: 26px; } .shapes { gap: 5px; } .shape { padding: 0 9px; font-size: .85rem; min-height: 38px; } }
